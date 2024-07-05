@@ -16,10 +16,25 @@
 # under the License.
 
 FROM ubuntu:22.04
-MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
+#MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Build libpng12
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    zlib1g-dev \
+    wget
+RUN wget https://ppa.launchpadcontent.net/linuxuprising/libpng12/ubuntu/pool/main/libp/libpng/libpng_1.2.54.orig.tar.xz
+RUN tar Jxfv libpng_1.2.54.orig.tar.xz
+WORKDIR /libpng-1.2.54
+RUN ./configure; make; make install
+RUN ln -s /usr/local/lib/libpng12.so.0.54.0 /usr/lib/libpng12.so
+RUN ln -s /usr/local/lib/libpng12.so.0.54.0 /usr/lib/libpng12.so.0
+
+WORKDIR /
 # Install dependencies for building OP-TEE
+
 RUN apt-get update && \
     apt-get install -y \
     git \
@@ -57,10 +72,9 @@ RUN apt-get update && \
     mtools \
     netcat \
     ninja-build \
-    python \
-    python-crypto \
-    python3-crypto \
-    python-pyelftools \
+    python3 \
+    python3-cryptography \
+    python3-pyelftools \
     python3-pycryptodome \
     python3-pyelftools \
     python3-serial \
@@ -81,11 +95,6 @@ RUN apt-get update && \
     ca-certificates
 
 RUN pip install cryptography
-
-RUN apt-get install -y software-properties-common && \
-    add-apt-repository ppa:linuxuprising/libpng12 && \
-    apt-get update && \
-    apt-get install libpng12-0
 
 # Install Rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
