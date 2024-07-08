@@ -103,3 +103,22 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
   rustup default nightly-2023-12-18
 
 ENV PATH="/root/.cargo/bin:$PATH"
+
+RUN git clone https://github.com/apache/incubator-teaclave-trustzone-sdk.git
+WORKDIR /incubator-teaclave-trustzone-sdk
+
+ENV PLATFORM="rpi3"
+ENV TARGET_HOST="aarch64-unknown-linux-gnu"
+ENV TARGET_TA="arm-unknown-linux-gnueabihf"
+
+RUN ./setup.sh
+RUN ./build_optee_libraries.sh optee/
+
+ENV CROSS_COMPILE_HOST="aarch64-linux-gnu-"
+ENV CROSS_COMPILE_TA="arm-linux-gnueabihf-"
+
+ENV TA_DEV_KIT_DIR="/incubator-teaclave-trustzone-sdk/optee/optee_os/out/arm-plat-vexpress/export-ta_arm32/"
+ENV OPTEE_CLIENT_EXPORT="/incubator-teaclave-trustzone-sdk/optee/optee_client/out/export/"
+# RUN source environment
+ENV LD_LIBRARY_PATH="/incubator-teaclave-trustzone-sdk/optee/optee_os/out/arm-plat-vexpress/"
+RUN make examples
